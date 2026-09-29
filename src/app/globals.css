@@ -1,0 +1,296 @@
+@font-face {
+  font-family: 'Good Times';
+  src: url('/fonts/good-times.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* â”€â”€â”€ Design Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+:root {
+  --bg: #05070B;
+  --bg-gradient: radial-gradient(circle at 90% 10%, #1C1D22 0%, #05070b 75%);
+  --surface: #0A111B;
+  --graphite: #1A2430;
+  --titanium: #6b7280;
+  --white: #F8FAFC;
+  --accent: #FFFFFF;
+
+  --font-heading: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-graphite: var(--graphite);
+  --color-titanium: var(--titanium);
+  --color-white: var(--white);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+/* â”€â”€â”€ Reset & Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--bg-gradient) no-repeat fixed;
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Lenis manages scrolling on html element */
+}
+
+body {
+  background: transparent;
+  color: var(--white);
+  font-family: var(--font-body), 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+p, article, div[data-text-justify="true"], .story-para {
+  text-align: justify !important;
+  text-justify: inter-word;
+}
+
+/* â”€â”€â”€ Typography Scale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.font-heading {
+  font-family: var(--font-heading), 'Space Grotesk', sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-body), 'Inter', sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), 'IBM Plex Mono', monospace;
+}
+
+/* â”€â”€â”€ Scrollbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+::-webkit-scrollbar {
+  width: 6px;
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--graphite);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--titanium);
+}
+
+/* â”€â”€â”€ Selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* â”€â”€â”€ Canvas layer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+#sequenceCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* â”€â”€â”€ Overlay layer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+#overlay {
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#overlay * {
+  pointer-events: auto;
+}
+
+/* â”€â”€â”€ Utility classes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.editorial-heading {
+  font-family: var(--font-heading), 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: var(--white);
+}
+
+.tech-label {
+  font-family: var(--font-mono), 'IBM Plex Mono', monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--titanium);
+}
+
+.body-copy {
+  font-family: var(--font-body), 'Inter', sans-serif;
+  font-weight: 300;
+  color: var(--titanium);
+  line-height: 1.7;
+}
+
+
+
+/* ─── Keyboard Focus Indicator (WCAG 2.4.7 Focus Visible) ─── */
+:focus-visible {
+  outline: 2px solid var(--accent, #4EBE59) !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 4px rgba(78, 190, 89, 0.2) !important;
+}
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes border-trace {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* â”€â”€â”€ Application panel group hover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* The top accent line on each panel uses a CSS transition  */
+/* triggered by hovering the parent .app-panel element.     */
+.app-panel:hover .panel-top-line {
+  transform: scaleX(1);
+}
+
+/* â”€â”€â”€ Scrollbar hide (integration tab row) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.tab-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* â”€â”€â”€ Section transition lift â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Ensures sections that slide over the canvas background   */
+/* don't leave pixel-level artefacts at the seam.          */
+.section-lift {
+  isolation: isolate;
+  will-change: transform;
+}
+
+/* â”€â”€â”€ Integration visual panel: keep SVG sharp â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.int-visual-panel svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* â”€â”€â”€ Smooth backdrop transition for Integration tabs â”€â”€â”€â”€â”€ */
+.int-tab-button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.int-tab-button:hover {
+  background-color: rgba(78, 190, 89, 0.03) !important;
+}
+
+.counter-uas-map-shell {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  background: #0a0a0a;
+  overflow: hidden;
+  position: relative;
+}
+
+.counter-uas-map-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.counter-uas-leaflet {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+}
+
+.counter-uas-leaflet .leaflet-control-container {
+  display: none;
+}
+
+.counter-uas-leaflet .leaflet-container {
+  background: #0a0a0a;
+}
+
+/* Zoom-locked: panning only, no zoom controls or gesture zoom */
+.counter-uas-leaflet .leaflet-grab {
+  cursor: grab;
+}
+.counter-uas-leaflet .leaflet-grab.leaflet-dragging {
+  cursor: grabbing;
+}
+
+/* Dark grey / black map tiling — flattened to a monochrome grey scale.
+   Brightened just enough that the near-black dark_nolabels terrain reads as
+   visible dark-grey against the frame instead of disappearing into black. */
+.counter-uas-leaflet .leaflet-tile {
+  filter: brightness(1.45) contrast(1.05) grayscale(1) !important;
+}
+
+/* Coverage ring sits above tiles, below any interaction chrome */
+.counter-uas-leaflet .leaflet-overlay-pane {
+  z-index: 450;
+}
+
+.counter-uas-map-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.55);
+  z-index: 1200;
+}
